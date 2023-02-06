@@ -1,12 +1,18 @@
 {
-  "name": "vis",
+  "name": "bindview",
   "version": "1.0.0",
-  "description": "",
+  "description": "bindview.js是一个使用虚拟dom来创建真实dom,并实现了模型与视图绑定的javascript库",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/debfig/bindview.git"
+  },
   "main": "./src/index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "bindview", "bindview", "bindview.js", "bindview.js"
+  ],
+  "author": "canlie",
   "license": "ISC"
 }
