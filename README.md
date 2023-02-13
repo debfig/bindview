@@ -19,7 +19,36 @@
     ]
   }
 ```
->### 2. bindview.js构造函数的设计
+>### 2. bindview.js实例
 >
 ```js
+  const An = new Bindview({
+    el: '#app',
+    data: {
+      title: 'hello Bindview.js'
+    },
+    node(bv) {
+      return {
+        el: 'div',
+        attr: { id: 'root' },
+        sonNode: [
+          {
+            el: 'h2',
+            attr: { val: bv.title },
+            sonNode: []
+          },
+          {
+            el: 'span',
+            attr: { val: 'github ' },
+            sonNode: []
+          },
+          {
+            el: 'a',
+            attr: { val: 'https://github.com/debfig/bindview', href: 'https://github.com/debfig/bindview' },
+            sonNode: []
+          }
+        ]
+      }
+    }
+  })
 ```

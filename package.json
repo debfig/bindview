@@ -14,5 +14,5 @@
     "bindview", "bindview", "bindview.js", "bindview.js"
   ],
   "author": "canlie",
-  "license": "ISC"
+  "license": "MIT"
 }
