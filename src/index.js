@@ -59,6 +59,8 @@
     bv._VnodeResponse(bv.Vnode, config.node instanceof Object ? node : console.error(`[Bindview] error node is error`), bv._VnodeUpdate);
     //映射dom树
     bv.__proto__._Original.set('_Original_Vnode', config);
+    // 方法初始化
+    config.methods instanceof Object ? bv.methods = config.methods : null;
   };
 
   /**
@@ -365,6 +367,15 @@
         }
       }
       upview(this.el, this.Vnode);
+
+      /**
+       * Dom挂载后
+       */
+      //元素绑定事件
+      _this._BindEvent();
+      // ref 获取dom元素
+      _this._GetElement(_this);
+
     } else {
       // 新旧dom树比较
       _this._Diff(newVnode, oldVnode)
@@ -384,6 +395,7 @@
 
     // 使用_KeyMapping使key键与真实dom进行映射
     this._KeyMapping.set(Key, NewNode);
+    NewNode.key = Key;
     if (typeof attr == 'string' || typeof attr == 'number') {
       NewNode.innerText = attr
     } else if (typeof attr == 'object' && attr instanceof Object) {
@@ -394,8 +406,6 @@
           for (let sty in attr[val]) {
             NewNode.style[sty] = attr[val][sty]
           }
-        } else if (val === 'data') {
-          this._map.set(attr[val], NewNode)
         } else {
           NewNode.setAttribute(val, attr[val]);
         }
@@ -486,6 +496,40 @@
       }
     }
   };
+
+
+  /**
+   * 绑定事件
+   */
+  Bindview.prototype._BindEvent = function () {
+    let _this = this;
+    let domEvemt = [...this.el.querySelectorAll('[event]')];
+    for (let i of domEvemt) {
+      let temp = i.getAttribute('event').split('-');
+      i.addEventListener(temp[0], function (e) {
+        if (_this.methods[temp[1]]) {
+          _this.methods[temp[1]].call(this, e, _this);
+        } else {
+          console.error(`[Ans] methods中没有${temp[1]} 方法`)
+        }
+      });
+    }
+  }
+
+
+  /**
+   * 获取dom元素
+   * @param {*} bv this 
+   */
+  Bindview.prototype._GetElement = function (bv) {
+    let DomElement = [...this.el.querySelectorAll('[ref]')];
+    let temp = new Object();
+    for (let i of DomElement) {
+      temp[i.getAttribute('ref')] = this._KeyMapping.get(i.key);
+    };
+    DomElement = null;
+    Object.values(temp).length > 0 ? bv.refs = temp : null;
+  }
 
 
   /**  
