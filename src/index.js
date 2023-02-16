@@ -37,10 +37,10 @@
     if (config instanceof Object) {
       this._init(config)
     }
-  }
+  };
 
   // 构造函数版本属性
-  Bindview.version = '1.0.0'
+  Bindview.version = '1.0.0';
 
 
   /**
@@ -52,13 +52,84 @@
     bv.el = typeof config.el == 'string' ? document.querySelector(config.el) : config.el instanceof HTMLElement ? config.el : console.error(`[Bindview] error el is null`);
     bv.el.key = 'root';
     // 初始化 data和Vnode 数据前
-    bv.data = new Object();
+    bv.data = bv._VObject();
     bv._DataBroker(bv.data, config.data instanceof Object ? config.data : console.error(`[Bindview] error data is null`), bv._Callback);
     bv.Vnode = new Object();
     let node = config.node(bv.data)
     bv._VnodeResponse(bv.Vnode, config.node instanceof Object ? node : console.error(`[Bindview] error node is error`), bv._VnodeUpdate);
-  }
+    //映射dom树
+    bv.__proto__._Original.set('_Original_Vnode', config);
+  };
 
+  /**
+   * 创建对象新的原型
+   * @returns newPrototype
+   */
+  Bindview.prototype._VObject = function () {
+    let TemplateObject = Object.create(Object.prototype);
+    let temp = new Object;
+    TemplateObject.$h = this.$h
+    temp.__proto__ = TemplateObject
+    return temp;
+  };
+
+  /**
+ * 虚拟dom模板函数
+ * @param {*} element 标签
+ * @param {*} attrs 属性
+ * @param {*} son 子元素
+ * @returns {Object} 虚拟dom对象
+ */
+  Object.defineProperty(Bindview.prototype, '$h', {
+    value: function () {
+      function funtemp(a, b, c) {
+        return {
+          el: a,
+          attr: b,
+          sonNode: c
+        }
+      };
+
+      let Template = {};
+      switch (arguments.length) {
+        case 1:
+          if (typeof arguments[0] === 'string') {
+            Template = funtemp(arguments[0], {}, []);
+          }
+          break;
+        case 2:
+          if (typeof arguments[0] === 'string') {
+            if (typeof arguments[1] === 'string') {
+              Template = funtemp(arguments[0], arguments[1], []);
+            } else if (typeof arguments[1] === 'object' && arguments[1] instanceof Array) {
+              Template = funtemp(arguments[0], {}, arguments[1]);
+            } else if (typeof arguments[1] === 'object' && arguments[1] instanceof Object) {
+              if (arguments[1].el) {
+                Template = funtemp(arguments[0], {}, [arguments[1]]);
+              } else {
+                Template = funtemp(arguments[0], arguments[1], [])
+              }
+            }
+          }
+          break;
+        case 3:
+          if (typeof arguments[0] === 'string') {
+            if (typeof arguments[2] === 'object' && arguments[2] instanceof Array) {
+              if (typeof arguments[1] === 'string') {
+                Template = funtemp(arguments[0], arguments[1], arguments[2]);
+              } else if (typeof arguments[1] === 'object' && arguments[1] instanceof Object) {
+                Template = funtemp(arguments[0], arguments[1], arguments[2]);
+              }
+            }
+          }
+          break;
+      }
+      return Template;
+    },
+    writable: true,
+    enumerable: false,
+    configurable: true
+  });
 
   /**
    * 数据代理函数
@@ -68,6 +139,7 @@
    * @param {Boolean} [state] 初始化时是否调用回调函数 
    */
   Bindview.prototype._DataBroker = function (object, value, fun, state = false) {
+    let _this = this;
     //内部函数方便自调用
     let DataMonitor = function (d_object, d_value, d_fun) {
       //设置get和set 函数
@@ -79,7 +151,7 @@
           },
           set(val) {
             addobject = val;
-            d_fun(i);
+            d_fun.call(_this, object[i]);
           }
         });
         //改变方法的 this 指向
@@ -148,7 +220,7 @@
     //调用一次
     DataMonitor(object, value, fun);
     if (state) { fun() };
-  }
+  };
 
 
   /**
@@ -165,7 +237,11 @@
       //设置get和set 函数
       function monitor(object, i, addobject) {
         // 对每个dom元素添加一个唯一的id
-        if (object.el) { object.key = crypto.randomUUID() }
+        if (object.el) {
+          if (object.key == null) {
+            object.key = crypto.randomUUID()
+          }
+        }
         Object.defineProperty(object, i, {
           enumerable: true,
           get() {
@@ -237,20 +313,36 @@
     //调用一次
     DataMonitor(object, value, fun);
     if (state) { fun.call(this) };
-  }
+  };
 
+  // 原始dom树
+  Bindview.prototype._Original = new Map();
   // 旧dom树
-  Bindview.prototype._oldVnode = {}
+  Bindview.prototype._oldVnode = {};
   // 虚拟dom与真实dom键值映射
-  Bindview.prototype._KeyMapping = new Map()
+  Bindview.prototype._KeyMapping = new Map();
 
 
   /**
    * 代理数据更新回调函数
    */
-  Bindview.prototype._Callback = function () {
-    console.log(11);
-  }
+  Bindview.prototype._Callback = function (key) {
+    let Original = this._Original.get('_Original_Vnode').node(this.data);
+
+    function bianli(newValue, oldValue) {
+      newValue.key = oldValue.key;
+      if (newValue.sonNode.length > 0) {
+        for (let i = 0; i < newValue.sonNode.length; i++) {
+          bianli(newValue.sonNode[i], oldValue.sonNode[i])
+        }
+      }
+    }
+    bianli(Original, this._oldVnode);
+
+    this.Vnode = new Object();
+    this._VnodeResponse(this.Vnode, Original, this._VnodeUpdate, false);
+    this._VnodeUpdate(this.Vnode, this._oldVnode);
+  };
 
   /**
    * 虚拟dom更新函数
@@ -277,7 +369,7 @@
       // 新旧dom树比较
       _this._Diff(newVnode, oldVnode)
     }
-  }
+  };
 
   /**
    * 将虚拟dom创建为真是dom
@@ -293,7 +385,7 @@
     // 使用_KeyMapping使key键与真实dom进行映射
     this._KeyMapping.set(Key, NewNode);
 
-    if (typeof attr == 'string') {
+    if (typeof attr == 'string' || typeof attr == 'number') {
       NewNode.innerText = attr
     } else if (typeof attr == 'object' && attr instanceof Object) {
       for (let val in attr) {
@@ -314,7 +406,7 @@
     }
     FatherNode.appendChild(NewNode);
     return NewNode
-  }
+  };
 
   /**
    * 对象深拷贝函数
@@ -336,7 +428,7 @@
         news[k] = old[k]
       }
     }
-  }
+  };
 
 
   /**
@@ -361,6 +453,8 @@
         }
       }
     }
+
+    // 使用遍历依此比较两个dom对象之间的差异，并使用dom更新函数updateView更新真实dom
 
     for (let i in newVnode) {
       if (typeof newVnode[i] === 'object' && newVnode[i] instanceof Array) {
@@ -392,7 +486,7 @@
         }
       }
     }
-  }
+  };
 
 
   /**  
@@ -400,7 +494,7 @@
    */
   if (typeof noGlobal == "undefined") {
     window.Bindview = Bindview;
-  }
+  };
 
   console.log(`%c bindview.js %c v${Bindview.version} `,
     'background: #35495e; padding: 1px; border-radius: 3px 0 0 3px; color: #fff;',
