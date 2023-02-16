@@ -99,7 +99,7 @@
           break;
         case 2:
           if (typeof arguments[0] === 'string') {
-            if (typeof arguments[1] === 'string') {
+            if (typeof arguments[1] === 'string' || typeof arguments[1] === 'number') {
               Template = funtemp(arguments[0], { val: arguments[1] }, []);
             } else if (typeof arguments[1] === 'object' && arguments[1] instanceof Array) {
               Template = funtemp(arguments[0], {}, arguments[1]);
@@ -115,7 +115,7 @@
         case 3:
           if (typeof arguments[0] === 'string') {
             if (typeof arguments[2] === 'object' && arguments[2] instanceof Array) {
-              if (typeof arguments[1] === 'string') {
+              if (typeof arguments[1] === 'string' || typeof arguments[1] === 'number') {
                 Template = funtemp(arguments[0], { val: arguments[1] }, arguments[2]);
               } else if (typeof arguments[1] === 'object' && arguments[1] instanceof Object) {
                 Template = funtemp(arguments[0], arguments[1], arguments[2]);
@@ -384,7 +384,6 @@
 
     // 使用_KeyMapping使key键与真实dom进行映射
     this._KeyMapping.set(Key, NewNode);
-
     if (typeof attr == 'string' || typeof attr == 'number') {
       NewNode.innerText = attr
     } else if (typeof attr == 'object' && attr instanceof Object) {
