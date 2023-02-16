@@ -61,3 +61,30 @@
     },
   })
 ```
+>### 3. methods配置对象和refs属性
+>`methods`配置对象用来配置需要使用到的方法,可以在虚拟dom中添加`event:'click-add'`属性来添加一个`click`事件，触发事件调用`methods`配置对象中的`add`方法,  在虚拟dom中添加`ref`属性，构造函数实例上会添加一个`refs`属性,属性值就是添加了`ref`属性的虚拟dom元素所对应的真实`dom`元素 
+```js
+  const An = new Bindview({
+    el: '#app',
+    data: {
+      title: 0,
+    },
+    node(bv) {
+      return bv.$h('div', [
+        bv.$h('p',{
+          val:bv.title,
+          ref:'p1'
+        }),
+        bv.$h('button',{
+          val:'title++',
+          event:'click-add'
+        })
+      ])
+    },
+    methods:{
+      add(_,bv){
+        bv.data.title++
+      }
+    }
+  })
+```
