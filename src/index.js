@@ -51,12 +51,20 @@
     let bv = this
     bv.el = typeof config.el == 'string' ? document.querySelector(config.el) : config.el instanceof HTMLElement ? config.el : console.error(`[Bindview] error el is null`);
     bv.el.key = 'root';
-    // 初始化 data和Vnode 数据前
+    // 生命周期
+    bv.life = config.life instanceof Object ? config.life : new Object();
+
+    // 初始化 data 数据前
+    if (bv.life.initData) { bv.life.initData.call(config) };
     bv.data = bv._VObject();
     bv._DataBroker(bv.data, config.data instanceof Object ? config.data : console.error(`[Bindview] error data is null`), bv._Callback);
+
+    // 初始化虚拟dom树前
+    if (bv.life.initVnode) { bv.life.initVnode.call(bv) };
     bv.Vnode = new Object();
     let node = config.node(bv.data)
     bv._VnodeResponse(bv.Vnode, config.node instanceof Object ? node : console.error(`[Bindview] error node is error`), bv._VnodeUpdate);
+
     //映射dom树
     bv.__proto__._Original.set('_Original_Vnode', config);
     // 方法初始化
@@ -154,6 +162,9 @@
           set(val) {
             addobject = val;
             d_fun.call(_this, object[i]);
+
+            //data数据更新后
+            if (_this.life.upDate) { _this.life.upDate.call(_this) };
           }
         });
         //改变方法的 this 指向
@@ -371,6 +382,7 @@
       /**
        * Dom挂载后
        */
+      if (_this.life.createDom) { _this.life.createDom.call(_this) };
       //元素绑定事件
       _this._BindEvent();
       // ref 获取dom元素
@@ -385,7 +397,7 @@
   /**
    * 将虚拟dom创建为真是dom
    * @param {HTMLElement} ParentElement 父元素
-   * @param {HTMLElement} ChildElement 子元素
+   * @param {String} ChildElement 子元素
    * @param {*} attr 属性
    * @returns 新元素
    */
