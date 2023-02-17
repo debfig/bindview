@@ -88,3 +88,43 @@
     }
   })
 ```
+>### 4. 生命周期函数
+>生命周期函数需要写在 `life` 配置对象中
+
+|函数名|使用|
+|:---:|:---:|
+|`initdata`|data 数据初始化前|
+|`initVnode`|虚拟dom树初始化前|
+|`createDom`|dom元素挂载后|
+|`upDate`|data更新后|
+```js
+  const An = new Bindview({
+    el: '#app',
+    data: {
+      title: 0,
+    },
+    node(bv) {
+      return bv.$h('div', [
+        bv.$h('p', bv.title),
+        bv.$h('button', {
+          val: '++',
+          event: 'click-add'
+        })
+      ])
+    },
+    methods: {
+      add(_, bv) {
+        bv.data.title++
+      }
+    },
+    life: {
+      initData() {
+      },
+      initVnode() { },
+      createDom() { console.log(this); },
+      upDate() {
+        console.log(this.data.title);
+      }
+    }
+  })
+```
