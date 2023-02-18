@@ -1,9 +1,9 @@
 /*！ 
- * bindview.js JavaScript Library v1.0.0
+ * bindview.js JavaScript Library v1.1.3
  * url: https://github.com/debfig/bindview
  * 
  * forfatter: 灿烈
- * Data: 2023/2/6
+ * Data: 2023/2/18
  * 
  * Released under the MIT license
  * description: bindview.js是一个使用虚拟dom来创建真实dom,并实现了模型与视图绑定的javascript库 
@@ -40,7 +40,7 @@
   };
 
   // 构造函数版本属性
-  Bindview.version = '1.0.0';
+  Bindview.version = '1.1.3';
 
 
   /**
@@ -51,6 +51,11 @@
     let bv = this
     bv.el = typeof config.el == 'string' ? document.querySelector(config.el) : config.el instanceof HTMLElement ? config.el : console.error(`[Bindview] error el is null`);
     bv.el.key = 'root';
+    //映射dom树
+    bv.__proto__._Original.set('_Original_Vnode', config);
+    // 方法初始化
+    config.methods instanceof Object ? bv.methods = config.methods : null;
+
     // 生命周期
     bv.life = config.life instanceof Object ? config.life : new Object();
 
@@ -64,11 +69,6 @@
     bv.Vnode = new Object();
     let node = config.node(bv.data)
     bv._VnodeResponse(bv.Vnode, config.node instanceof Object ? node : console.error(`[Bindview] error node is error`), bv._VnodeUpdate);
-
-    //映射dom树
-    bv.__proto__._Original.set('_Original_Vnode', config);
-    // 方法初始化
-    config.methods instanceof Object ? bv.methods = config.methods : null;
   };
 
   /**
