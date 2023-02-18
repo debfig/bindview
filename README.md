@@ -93,7 +93,7 @@
 
 |函数名|使用|
 |:---:|:---:|
-|`initdata`|data 数据初始化前|
+|`initData`|data 数据初始化前|
 |`initVnode`|虚拟dom树初始化前|
 |`createDom`|dom元素挂载后|
 |`upDate`|data更新后|
