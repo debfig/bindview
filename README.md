@@ -128,3 +128,41 @@
     }
   })
 ```
+>### 5. `Bindview.prototype.$addDataMethods()` 方法
+>`Bindview.prototype.$addDataMethods()` 方法用来在初始化对象前在`data`配置对象原型上添加原型属性 参数一是(key)键，参数二是(value)值
+```js
+  // 使用 Bindview.prototype.$addDataMethods() 在data原型上添加方法
+  Bindview.prototype.$addDataMethods('$div', function () {
+    return this.$h('div', this.txt)
+  })
+
+  const An = new Bindview({
+    el: '#app',
+    data: {
+      title: 0,
+    },
+    node(bv) {
+      return bv.$h('div', [
+        bv.$h('p', bv.title),
+        bv.$h('button', {
+          val: '++',
+          event: 'click-add'
+        })
+      ])
+    },
+    methods: {
+      add(_, bv) {
+        bv.data.title++
+      }
+    },
+    life: {
+      initData() {
+      },
+      initVnode() { },
+      createDom() { console.log(this); },
+      upDate() {
+        console.log(this.data.title);
+      }
+    }
+  })
+```
