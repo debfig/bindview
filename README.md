@@ -93,7 +93,7 @@
 
 |函数名|使用|
 |:---:|:---:|
-|`initdata`|data 数据初始化前|
+|`initData`|data 数据初始化前|
 |`initVnode`|虚拟dom树初始化前|
 |`createDom`|dom元素挂载后|
 |`upDate`|data更新后|
@@ -128,6 +128,7 @@
     }
   })
 ```
+<<<<<<< HEAD
 >### 5. `Bindview.prototype.$addDataMethods()` 方法
 >`Bindview.prototype.$addDataMethods()` 方法用来在初始化对象前在`data`配置对象原型上添加原型属性 参数一是(key)键，参数二是(value)值
 ```js
@@ -166,3 +167,5 @@
     }
   })
 ```
+=======
+>>>>>>> e8ed8a965697d863af9a1cba69ae856101e4dab8
