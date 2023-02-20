@@ -71,16 +71,41 @@
     bv._VnodeResponse(bv.Vnode, config.node instanceof Object ? node : console.error(`[Bindview] error node is error`), bv._VnodeUpdate);
   };
 
+
+  /**
+   * data 配置对象原型
+   */
+  Bindview.prototype._dataPrototype = new Object();
+
+  /**
+   * data 新原型
+   */
+  Bindview.prototype.TemplateObject = Object.create(Object.prototype);
+
+  /**
+   * 添加data配置对象原型属性
+   * @param {*} attrName 方法名
+   * @param {*} attr 属性
+   */
+  Bindview.prototype.$addDataMethods = function (attrName, attr) {
+    Object.defineProperty(Bindview.prototype, attrName, {
+      value: attr,
+      writable: true,
+      enumerable: false,
+      configurable: true
+    });
+    this.TemplateObject[attrName] = this[attrName];
+  }
+
+
   /**
    * 创建对象新的原型
    * @returns newPrototype
    */
   Bindview.prototype._VObject = function () {
-    let TemplateObject = Object.create(Object.prototype);
-    let temp = new Object;
-    TemplateObject.$h = this.$h
-    temp.__proto__ = TemplateObject
-    return temp;
+    this.TemplateObject.$h = this.$h
+    this._dataPrototype.__proto__ = this.TemplateObject
+    return this._dataPrototype;
   };
 
   /**
