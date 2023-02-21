@@ -1,9 +1,9 @@
 /*！ 
- * bindview.js JavaScript Library v1.1.3
+ * bindview.js JavaScript Library v1.1.4
  * url: https://github.com/debfig/bindview
  * 
  * forfatter: 灿烈
- * Data: 2023/2/18
+ * Data: 2023/2/20
  * 
  * Released under the MIT license
  * description: bindview.js是一个使用虚拟dom来创建真实dom,并实现了模型与视图绑定的javascript库 
@@ -40,7 +40,7 @@
   };
 
   // 构造函数版本属性
-  Bindview.version = '1.1.3';
+  Bindview.version = '1.1.4';
 
 
   /**
@@ -80,7 +80,7 @@
   /**
    * data 新原型
    */
-  Bindview.prototype.TemplateObject = Object.create(Object.prototype);
+  Bindview.prototype._TemplateObject = Object.create(Object.prototype);
 
   /**
    * 添加data配置对象原型属性
@@ -94,7 +94,7 @@
       enumerable: false,
       configurable: true
     });
-    this.TemplateObject[attrName] = this[attrName];
+    this._TemplateObject[attrName] = this[attrName];
   }
 
 
@@ -103,8 +103,8 @@
    * @returns newPrototype
    */
   Bindview.prototype._VObject = function () {
-    this.TemplateObject.$h = this.$h
-    this._dataPrototype.__proto__ = this.TemplateObject
+    this._TemplateObject.$h = this.$h
+    this._dataPrototype.__proto__ = this._TemplateObject
     return this._dataPrototype;
   };
 
@@ -483,8 +483,8 @@
    * @param {*} oldVnode 旧的虚拟dom树
    */
   Bindview.prototype._Diff = function (newVnode, oldVnode) {
-    // 更新视图
-    function updateView(newVnodeobject) {
+    // 更新属性
+    function updateAttr(newVnodeobject) {
       let NewNode = this._KeyMapping.get(newVnodeobject.key);
       let attr = newVnodeobject.attr;
       for (let val in attr) {
@@ -500,13 +500,72 @@
       }
     }
 
+
+    // 创造新节点
+    function CreateDom(attr) {
+      let NewNode = document.createElement(attr.el);
+
+      let Key = crypto.randomUUID()
+      // 使用_KeyMapping使key键与真实dom进行映射
+      this._KeyMapping.set(Key, NewNode);
+      NewNode.key = Key;
+      if (typeof attr == 'string' || typeof attr == 'number') {
+        NewNode.innerText = attr
+      } else if (typeof attr == 'object' && attr instanceof Object) {
+        for (let val in attr) {
+          if (val === 'val') {
+            NewNode.innerText = attr[val]
+          } else if (val === 'style') {
+            for (let sty in attr[val]) {
+              NewNode.style[sty] = attr[val][sty]
+            }
+          } else {
+            NewNode.setAttribute(val, attr[val]);
+          }
+        }
+      } else {
+        console.error(`${attr}不正确！！`);
+      }
+      return NewNode;
+    }
+
+    /**
+     * 添加新标签
+     * @param {HTMLElement} fatherAndSon 父子节点
+     * @param {HTMLElement} Benchmarking 标记节点
+     * @param {*} attr 虚拟dom
+     * @param {Boolean} state true为子节点前面添加 false子节点末尾添加
+     */
+    function addNewElement(fatherAndSon, Benchmarking, attr, state) {
+      if (state) {
+        // 子节点前面添加
+        fatherAndSon.insertBefore(CreateDom(attr), Benchmarking)
+      } else {
+        // 子节点末尾添加
+        fatherAndSon.appendChild(CreateDom(attr));
+      }
+    }
+
     // 使用遍历依此比较两个dom对象之间的差异，并使用dom更新函数updateView更新真实dom
 
     for (let i in newVnode) {
       if (typeof newVnode[i] === 'object' && newVnode[i] instanceof Array) {
+        // 子元素精细化比较
+
         for (let l = 0; l < newVnode[i].length; l++) {
           this._Diff(newVnode[i][l], oldVnode[i][l])
         }
+
+        // if (newVnode[i].length > oldVnode[i].length) {
+        //   for (let l = 0; l < newVnode[i].length; l++) {
+
+        //   }
+        // } else {
+        //   for (let l = 0; l < oldVnode[i].length; l++) {
+
+        //   }
+        // }
+
       } else if (typeof newVnode[i] === 'object' && newVnode[i] instanceof Object) {
         for (let k in newVnode[i]) {
           if (typeof newVnode[i][k] === 'object' && newVnode[i][k] instanceof Object) {
@@ -514,14 +573,14 @@
             for (let j in temp) {
               if (temp[j] !== oldVnode[i][k][j]) {
                 //重新渲染
-                updateView.call(this, newVnode);
+                updateAttr.call(this, newVnode);
                 this._deepClone(oldVnode, newVnode);
               }
             }
           } else {
             if (newVnode[i][k] !== oldVnode[i][k]) {
               //重新渲染dom
-              updateView.call(this, newVnode);
+              updateAttr.call(this, newVnode);
               this._deepClone(oldVnode, newVnode);
             }
           }
